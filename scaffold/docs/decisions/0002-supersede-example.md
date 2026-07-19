@@ -1,32 +1,33 @@
 ---
 id: ADR-0002
-title: Trocar persistência para DynamoDB
+title: Switch persistence to DynamoDB
 status: accepted
 date: 2026-07-19
 supersedes: ADR-0001
 superseded_by: null
 ---
 
-# ADR-0002 — Trocar persistência para DynamoDB
+# ADR-0002 - Switch persistence to DynamoDB
 
-## Contexto
+## Context
 
-O volume de escrita cresceu e a escala horizontal do Postgres virou gargalo
-operacional. Este é exatamente o caso "antes era A, agora é B": ADR-0001 dizia
-Postgres; esta decisão o substitui.
+Write volume grew and Postgres horizontal scaling became an operational
+bottleneck. This is exactly the "it was A, now it is B" case: ADR-0001 said
+Postgres; this decision supersedes it.
 
-## Decisão
+## Decision
 
-Migrar a persistência do módulo de pagamentos para DynamoDB.
+Migrate the payments module's persistence to DynamoDB.
 
-## Consequências
+## Consequences
 
-- Escala horizontal e latência previsível.
-- Perde transações multi-item nativas → idempotência tratada na aplicação.
-- **Ação obrigatória:** SPEC-001 foi atualizada (v3) para refletir DynamoDB, e
-  ADR-0001 foi marcado `superseded`.
+- Horizontal scale and predictable latency.
+- Loses native multi-item transactions - idempotency handled in the
+  application.
+- **Required action:** SPEC-001 was updated (v3) to reflect DynamoDB, and
+  ADR-0001 was marked `superseded`.
 
-## Relacionado
+## Related
 
-- Supersede: ADR-0001
-- Reflete em: SPEC-001 (v3)
+- Supersedes: ADR-0001
+- Reflected in: SPEC-001 (v3)

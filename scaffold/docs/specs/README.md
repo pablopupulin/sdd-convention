@@ -1,31 +1,31 @@
-# Specs (fonte de verdade viva)
+# Specs (the living source of truth)
 
-Cada arquivo aqui descreve **o que o sistema deve fazer hoje** para um domínio.
-São documentos **vivos**: editados no lugar, versionados por frontmatter, um por
-domínio. Não existem "v2" lado a lado — existe a spec e seu histórico no git +
-nos ADRs.
+Each file here describes **what the system must do today** for one domain.
+These are **living** documents: edited in place, versioned via frontmatter,
+one per domain. There is no "v2 next to v1" - there is the spec, plus its
+history in git and in the ADRs.
 
-## Índice de specs ativas
+## Active spec index
 
-| ID       | Domínio            | Status   | Versão | Atualizada |
-|----------|--------------------|----------|--------|------------|
-| SPEC-001 | Módulo de exemplo  | active   | 3      | 2026-07-19 |
+| ID       | Domain              | Status | Version | Updated    |
+|----------|---------------------|--------|---------|------------|
+| SPEC-001 | Example module      | active | 3       | 2026-07-19 |
 
-> Mantenha esta tabela como o índice legível por humano e por agent. Uma spec
-> `archived` sai daqui e vai para `docs/_archive/`.
+> Keep this table as the index readable by humans and agents. An `archived`
+> spec leaves this table and moves to `docs/_archive/`.
 
-## Frontmatter obrigatório
+## Required frontmatter
 
 ```yaml
 ---
 id: SPEC-001
-title: Módulo de pagamentos
+title: Payments module
 status: active        # draft | active | superseded | archived
-version: 3            # suba a cada mudança de comportamento
+version: 3            # bump on every behavior change
 updated: 2026-07-19
-owner: time-pagamentos
-supersedes: []        # ids de specs que esta consolidou
-superseded_by: null   # preenchido quando vira archived
-canonical: true       # agents só confiam em canonical: true + status: active
+owner: payments-team
+supersedes: []        # spec ids this one consolidated
+superseded_by: null   # filled when it becomes archived
+canonical: true       # agents only trust canonical: true + status: active
 ---
 ```

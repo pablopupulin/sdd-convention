@@ -1,27 +1,27 @@
 ---
 id: ADR-0001
-title: Postgres como storage inicial
+title: Postgres as initial storage
 status: superseded
 date: 2026-01-10
 supersedes: null
 superseded_by: ADR-0002
 ---
 
-# ADR-0001 — Postgres como storage inicial
+# ADR-0001 - Postgres as initial storage
 
-> STATUS: **superseded por ADR-0002**. Mantido para histórico. Não é vigente.
+> STATUS: **superseded by ADR-0002**. Kept for history. Not current.
 
-## Contexto
+## Context
 
-No início do projeto precisávamos de um storage relacional simples, com
-transações fortes e familiaridade do time.
+At the start of the project we needed simple relational storage with strong
+transactions and team familiarity.
 
-## Decisão
+## Decision
 
-Usar PostgreSQL como banco primário do módulo de pagamentos.
+Use PostgreSQL as the primary database for the payments module.
 
-## Consequências
+## Consequences
 
-- Transações ACID prontas.
-- Acoplamento ao modelo relacional (custo alto de escala horizontal — foi o que
-  motivou o ADR-0002).
+- ACID transactions out of the box.
+- Coupling to the relational model (high horizontal-scaling cost - which is
+  what motivated ADR-0002).

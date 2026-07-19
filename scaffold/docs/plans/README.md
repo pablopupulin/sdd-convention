@@ -1,25 +1,26 @@
-# Plans (camada working — efêmera)
+# Plans (the working layer - ephemeral)
 
-Aqui ficam os artefatos **em andamento** do fluxo Superpowers
-(brainstorm → worktree → plano → implementar). Eles são descartáveis por design:
-servem enquanto a feature está aberta.
+Work-in-progress artifacts live here (brainstorm - worktree - plan -
+implement flows such as Superpowers). They are disposable by design: they
+serve while the feature is open.
 
 ```
 plans/
-├── active/     # planos de features em andamento (1 por worktree/branch)
-└── archive/    # planos de features já mergeadas — mantidos só por rastreio
+|- active/     # plans for in-flight features (1 per worktree/branch)
+|- archive/    # plans of merged features - kept only for the paper trail
 ```
 
-## Regra de ciclo de vida
+## Lifecycle rule
 
-1. Ao começar uma feature, o plano nasce em `active/` (ex.: `active/2026-07-pagamentos-dynamo.md`).
-2. Enquanto trabalha, os checkboxes do plano trackeiam progresso (padrão Superpowers).
-3. Ao mergear: **promova o durável** e mova o plano para `archive/`.
-   - Comportamento novo → atualize a spec em `docs/specs/`.
-   - Trade-off de arquitetura → escreva um ADR em `docs/decisions/`.
-4. Um plano em `archive/` **não** é fonte de verdade. Agents não devem inferir o
-   estado atual a partir dele.
+1. When a feature starts, its plan is born in `active/`
+   (e.g. `active/2026-07-payments-dynamo.md`).
+2. While working, the plan's checkboxes track progress.
+3. On merge: **promote what is durable**, then move the plan to `archive/`.
+   - New behavior - update the spec in `docs/specs/`.
+   - Architecture trade-off - write an ADR in `docs/decisions/`.
+4. A plan in `archive/` is **not** a source of truth. Agents must not infer
+   current state from it.
 
-> Por que separar de specs/decisions: plano é *como vamos fazer agora*; spec é
-> *o que deve valer*; ADR é *por que decidimos assim*. Três mutabilidades
-> diferentes — não misture no mesmo arquivo.
+> Why separate from specs/decisions: a plan is *how we are doing it now*; a
+> spec is *what must hold*; an ADR is *why we decided so*. Three different
+> mutabilities - never mix them in one file.

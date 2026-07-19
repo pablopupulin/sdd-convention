@@ -1,12 +1,13 @@
-# _archive (histórico — invisível para agents por padrão)
+# _archive (history - invisible to agents by default)
 
-Specs aposentadas moram aqui. Um documento neste diretório **nunca** é atual.
-Ele existe para arqueologia humana; agents devem ignorá-lo ao raciocinar sobre o
-estado do sistema (o `CLAUDE.md` instrui isso explicitamente).
+Retired specs live here. A document in this directory is **never** current.
+It exists for human archaeology; agents must ignore it when reasoning about
+the system's state (the CLAUDE.md rules block says so explicitly).
 
-Regras:
+Rules:
 
-- Todo arquivo aqui tem `status: archived` e `superseded_by` preenchido.
-- Não delete (o git já guarda, mas manter o header torna a intenção explícita e
-  legível sem `git log`).
-- Prefixe com a data de aposentadoria para ordenar: `2026-01-example-payments-v1.md`.
+- Every file here has `status: archived` and `superseded_by` filled.
+- Do not delete (git remembers anyway, but the header makes the intent
+  explicit and readable without `git log`).
+- Prefix with the retirement date for ordering:
+  `2026-01-example-payments-v1.md`.

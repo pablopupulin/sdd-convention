@@ -1,32 +1,33 @@
-# Decisions (ADRs — log imutável do "por quê")
+# Decisions (ADRs - the immutable "why" log)
 
-Aqui vivem as **contradições legítimas**. Quando o sistema muda de A para B,
-o "A" não fica solto numa spec fingindo ser atual: ele vira um ADR marcado como
-`superseded`, e um novo ADR (`supersedes: ...`) registra o B.
+This is where **legitimate contradictions** live. When the system changes
+from A to B, the "A" does not linger in a spec pretending to be current: it
+becomes an ADR marked `superseded`, and a new ADR (`supersedes: ...`) records
+the B.
 
-Formato: [MADR](https://adr.github.io/madr/) enxuto. Regras:
+Format: lean [MADR](https://adr.github.io/madr/). Rules:
 
-- **Append-only.** Nunca edite a decisão de um ADR aceito; nunca delete.
-- Ao mudar de ideia, crie um **novo** ADR e marque o antigo `superseded`,
-  ligando os dois por `supersedes` / `superseded_by`.
-- Numeração sequencial de 4 dígitos: `0001`, `0002`, ...
+- **Append-only.** Never edit an accepted ADR's decision; never delete.
+- Changed your mind? Write a **new** ADR and mark the old one `superseded`,
+  linking both via `supersedes` / `superseded_by`.
+- Sequential 4-digit numbering: `0001`, `0002`, ...
 
-## Log de decisões
+## Decision log
 
-| ADR      | Título                                  | Status     | Supersedes | Data       |
-|----------|-----------------------------------------|------------|------------|------------|
-| ADR-0001 | Postgres como storage inicial           | superseded | —          | 2026-01-10 |
-| ADR-0002 | Trocar persistência para DynamoDB       | accepted   | ADR-0001   | 2026-07-19 |
+| ADR      | Title                             | Status     | Supersedes | Date       |
+|----------|-----------------------------------|------------|------------|------------|
+| ADR-0001 | Postgres as initial storage       | superseded | -          | 2026-01-10 |
+| ADR-0002 | Switch persistence to DynamoDB    | accepted   | ADR-0001   | 2026-07-19 |
 
-## Frontmatter obrigatório
+## Required frontmatter
 
 ```yaml
 ---
 id: ADR-0002
-title: Trocar persistência para DynamoDB
+title: Switch persistence to DynamoDB
 status: accepted      # proposed | accepted | superseded | deprecated | rejected
 date: 2026-07-19
-supersedes: ADR-0001  # ou null
-superseded_by: null   # preenchido quando outro ADR o substitui
+supersedes: ADR-0001  # or null
+superseded_by: null   # filled when another ADR replaces this one
 ---
 ```

@@ -1,42 +1,43 @@
 ---
 id: SPEC-001
-title: Módulo de exemplo (pagamentos)
+title: Example module (payments)
 status: active
 version: 3
 updated: 2026-07-19
-owner: time-pagamentos
+owner: payments-team
 supersedes: []
 superseded_by: null
 canonical: true
 ---
 
-# SPEC-001 — Módulo de exemplo (pagamentos)
+# SPEC-001 - Example module (payments)
 
-> Esta é uma spec **viva**. Descreva o estado atual desejado, no presente.
-> Não narre a história ("antes era X, agora é Y") — isso vai para um ADR.
+> This is a **living** spec. Describe the current desired state, in the
+> present tense. Never narrate history ("it was X, now it is Y") - that goes
+> into an ADR.
 
-## Objetivo
+## Purpose
 
-Uma frase sobre o que este domínio resolve.
+One sentence on what this domain solves.
 
-## Comportamento atual (o que deve valer HOJE)
+## Current behavior (what must hold TODAY)
 
-- Persistência: **DynamoDB** (ver decisão em ADR-0002).
+- Persistence: **DynamoDB** (see decision in ADR-0002).
 - ...
 
-## Fora de escopo
+## Out of scope
 
 - ...
 
-## Decisões relacionadas
+## Related decisions
 
-- ADR-0001 — Postgres como storage inicial (superseded)
-- ADR-0002 — Troca para DynamoDB (accepted) ← vigente
+- ADR-0001 - Postgres as initial storage (superseded)
+- ADR-0002 - Switch to DynamoDB (accepted) <- current
 
 ## Changelog
 
-| Versão | Data       | Mudança                                   |
-|--------|------------|-------------------------------------------|
-| 3      | 2026-07-19 | Storage passa a DynamoDB (ADR-0002)       |
-| 2      | 2026-03-02 | Adiciona idempotência de cobrança         |
-| 1      | 2026-01-10 | Versão inicial                            |
+| Version | Date       | Change                                  |
+|---------|------------|-----------------------------------------|
+| 3       | 2026-07-19 | Storage moves to DynamoDB (ADR-0002)    |
+| 2       | 2026-03-02 | Adds charge idempotency                 |
+| 1       | 2026-01-10 | Initial version                         |

@@ -1,51 +1,54 @@
-# Memória do projeto — LEIA ISTO PRIMEIRO
+# Project memory - READ THIS FIRST
 
-> Este arquivo é o ponto de entrada de qualquer agent (Claude Code / Superpowers).
-> Ele diz **onde está a verdade** e **como saber o que é atual**. Não repita
-> conteúdo de spec aqui; aponte para ele.
+<!-- sdd-convention:start -->
+> This section is managed by the sdd-convention plugin. It tells any agent
+> **where the truth lives** and **how to tell what is current**. Do not repeat
+> spec content here; point to it.
 
-## Fonte única de verdade (source of truth)
+## Single source of truth
 
-As **únicas** specs canônicas ficam em `docs/specs/` com `status: active` no
-frontmatter. Se um documento estiver em `docs/_archive/` ou tiver
-`status: superseded`/`archived`, **NÃO** o trate como atual — ele é histórico.
+The **only** canonical specs live in `docs/specs/` with `status: active` in
+the frontmatter. If a document sits in `docs/_archive/` or carries
+`status: superseded`/`archived`, do **NOT** treat it as current - it is
+history.
 
-Ordem de autoridade quando houver conflito:
+Authority order when sources conflict:
 
-1. `docs/specs/*` com `status: active`  → o que o sistema **deve** fazer hoje
-2. O código  → o que ele **faz** hoje
-3. `docs/decisions/*` (ADRs)  → **por que** mudou de A para B
-4. `docs/_archive/*`  → passado, só para arqueologia. Ignore por padrão.
+1. `docs/specs/*` with `status: active`  - what the system MUST do today
+2. The code  - what it actually does today
+3. `docs/decisions/*` (ADRs)  - WHY it changed from A to B
+4. `docs/_archive/*`  - the past, archaeology only. Ignore by default.
 
-Se spec e código divergirem, a spec ativa vence: alinhe o código e registre a
-reconciliação num ADR. Nunca "corrija" a divergência editando silenciosamente a
-spec antiga.
+If an active spec and the code diverge, the spec wins: align the code and
+record the reconciliation in an ADR. Never "fix" the divergence by silently
+editing the old spec.
 
-## Como descobrir o que é atual (sem ler tudo)
+## How to find what is current (without reading everything)
 
-- `docs/specs/README.md`     → índice das specs ativas + status
-- `docs/decisions/README.md` → log de decisões (o "de A para B e por quê")
-- `docs/plans/`              → trabalho em andamento (Superpowers). Efêmero.
+- `docs/specs/README.md`     - index of active specs + status
+- `docs/decisions/README.md` - decision log (the "from A to B and why")
+- `docs/plans/`              - work in progress. Ephemeral.
 
-## Regras para agents ao editar documentação
+## Rules for agents editing documentation
 
-1. **Specs são vivas.** Edite a spec no lugar e suba `version`/`updated`.
-   NUNCA crie `pagamentos-v2.md` ao lado de `pagamentos.md`.
-2. **Toda mudança de comportamento que contradiz uma decisão anterior exige um
-   novo ADR** em `docs/decisions/` com `supersedes: ADR-XXXX`. O ADR é o único
-   lugar onde a contradição pode viver.
-3. **Nunca delete um ADR.** Marque `status: superseded` e crie o novo.
-4. **Aposente specs, não delete.** Ao retirar uma spec: `status: archived`,
-   preencha `superseded_by`, e mova o arquivo para `docs/_archive/`.
-5. **Planos do Superpowers** vivem em `docs/plans/active/` enquanto abertos e vão
-   para `docs/plans/archive/` quando o PR/worktree é mergeado. O que for durável
-   graduou-se para uma spec ou um ADR — o plano em si é descartável.
+1. **Specs are living documents.** Edit the spec in place and bump
+   `version`/`updated`. NEVER create `payments-v2.md` next to `payments.md`.
+2. **Any behavior change that contradicts a previous decision requires a new
+   ADR** in `docs/decisions/` with `supersedes: ADR-XXXX`. The ADR is the
+   only place where the contradiction may live.
+3. **Never delete an ADR.** Mark it `status: superseded` and write the new
+   one.
+4. **Retire specs, never delete.** When retiring a spec: `status: archived`,
+   fill `superseded_by`, move the file to `docs/_archive/`.
+5. **Plans** live in `docs/plans/active/` while open and move to
+   `docs/plans/archive/` when merged. Anything durable graduates to a spec or
+   an ADR - the plan itself is disposable.
 
-## Fluxo Superpowers ↔ camada durável
+## Finishing work
 
-Brainstorm → worktree → plano → implementar (Superpowers) produz artefatos
-**working** (efêmeros). No fim de cada feature, promova o que sobreviver:
+At the end of any task that changed behavior, promote what survives:
 
-- Comportamento novo/alterado → atualize a **spec** canônica em `docs/specs/`.
-- Escolha de arquitetura/trade-off → escreva um **ADR** em `docs/decisions/`.
-- O plano vai para `docs/plans/archive/`. Não é fonte de verdade.
+- New or changed behavior - update the canonical **spec** in `docs/specs/`.
+- Architecture choice / trade-off - write an **ADR** in `docs/decisions/`.
+- The plan goes to `docs/plans/archive/`. It is not a source of truth.
+<!-- sdd-convention:end -->
