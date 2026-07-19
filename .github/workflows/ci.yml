@@ -22,8 +22,9 @@ jobs:
         run: python -m pytest tests/ -v
       - name: Scaffold hygiene linter self-check
         run: python scaffold/scripts/check-docs.py scaffold/docs
-      - name: Validate manifests are JSON
-        run: |
-          python -m json.tool .claude-plugin/plugin.json
-          python -m json.tool .claude-plugin/marketplace.json
-          python -m json.tool hooks/hooks.json
+      - name: Validate plugin.json
+        run: python -m json.tool .claude-plugin/plugin.json
+      - name: Validate marketplace.json
+        run: python -m json.tool .claude-plugin/marketplace.json
+      - name: Validate hooks.json
+        run: python -m json.tool hooks/hooks.json
