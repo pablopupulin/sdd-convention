@@ -2,7 +2,13 @@
 """Stop hook for the sdd-convention plugin.
 
 Reminds the agent to update durable docs (specs/ADRs) when a turn edited
-project files outside docs/ without touching docs/specs/ or docs/decisions/.
+project files outside the documentation trees without touching the durable
+layer (specs or decisions).
+
+Which trees count is ecosystem data (ECOSYSTEMS): the native convention uses
+docs/specs + docs/decisions; OpenSpec projects use openspec/specs +
+docs/decisions. Detection unions every ecosystem whose detect dir exists; an
+optional .sdd.json at the project root forces or extends it.
 
 Fail-open by design: any unexpected condition exits 0 with no output. The
 hook is a deterministic reminder, not a gate - hard enforcement lives in CI
@@ -18,13 +24,26 @@ import sys
 
 EDIT_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
 
+ECOSYSTEMS = {
+    "native": {
+        "detect": "docs/specs",
+        "durable": ("docs/specs/", "docs/decisions/"),
+        "ignore": ("docs/",),
+    },
+    "openspec": {
+        "detect": "openspec/specs",
+        "durable": ("openspec/specs/", "docs/decisions/"),
+        "ignore": ("openspec/", "docs/"),
+    },
+}
+
 REASON = (
-    "SDD convention check: this turn edited project files outside docs/ but did "
-    "not update docs/specs/ or docs/decisions/. Invoke the sdd-finalize skill "
-    "now and either (a) update the canonical spec and/or write an ADR for what "
-    "changed, or (b) if nothing durable changed (pure refactor, typo, tooling), "
-    "state that explicitly to the user in one sentence. Do not fabricate doc "
-    "updates."
+    "SDD convention check: this turn edited project files outside the "
+    "documentation trees but did not update the durable docs layer (specs or "
+    "ADRs). Invoke the sdd-finalize skill now and either (a) update the "
+    "canonical spec and/or write an ADR for what changed, or (b) if nothing "
+    "durable changed (pure refactor, typo, tooling), state that explicitly to "
+    "the user in one sentence. Do not fabricate doc updates."
 )
 
 
@@ -98,6 +117,59 @@ def project_relative(path, cwd):
     return rel
 
 
+def _as_prefix(p):
+    """Normalize a user-supplied path prefix to forward-slash + trailing /."""
+    p = p.replace("\\", "/").lstrip("./")
+    return p if p.endswith("/") else p + "/"
+
+
+def load_active_rules(cwd):
+    """Resolve (durable, ignore) prefix tuples for this project, or None when
+    no ecosystem applies (the hook stays silent).
+
+    Auto-detection unions every ecosystem whose detect directory exists. An
+    optional .sdd.json at the project root can force the ecosystem list
+    ({"ecosystems": [...]}) and extend the sets ("extra_durable",
+    "extra_ignore"). A malformed config is ignored - fail open to detection.
+    """
+    forced = None
+    extra_durable, extra_ignore = [], []
+    config_path = os.path.join(cwd, ".sdd.json")
+    if os.path.isfile(config_path):
+        try:
+            with open(config_path, encoding="utf-8") as fh:
+                config = json.load(fh)
+        except (OSError, ValueError):
+            config = None
+        if isinstance(config, dict):
+            raw = config.get("ecosystems")
+            if isinstance(raw, list):
+                forced = [n for n in raw if n in ECOSYSTEMS]
+            extra_durable = [
+                p for p in config.get("extra_durable") or []
+                if isinstance(p, str) and p.strip()
+            ]
+            extra_ignore = [
+                p for p in config.get("extra_ignore") or []
+                if isinstance(p, str) and p.strip()
+            ]
+    if forced is not None:
+        names = forced
+    else:
+        names = [
+            name for name, eco in ECOSYSTEMS.items()
+            if os.path.isdir(os.path.join(cwd, *eco["detect"].split("/")))
+        ]
+    if not names and not extra_durable:
+        return None
+    durable = {p for name in names for p in ECOSYSTEMS[name]["durable"]}
+    durable.update(_as_prefix(p) for p in extra_durable)
+    ignore = {p for name in names for p in ECOSYSTEMS[name]["ignore"]}
+    ignore.update(_as_prefix(p) for p in extra_ignore)
+    ignore.update(durable)
+    return tuple(durable), tuple(ignore)
+
+
 def _run():
     try:
         data = json.load(sys.stdin)
@@ -107,8 +179,10 @@ def _run():
         return 0
 
     cwd = data.get("cwd") or os.getcwd()
-    if not os.path.isdir(os.path.join(cwd, "docs", "specs")):
+    rules = load_active_rules(cwd)
+    if rules is None:
         return 0  # project has not opted into the convention
+    durable, ignore = rules
 
     transcript_path = data.get("transcript_path")
     if not transcript_path or not os.path.isfile(transcript_path):
@@ -120,11 +194,8 @@ def _run():
         return 0
 
     rels = [r for r in (project_relative(p, cwd) for p in edited) if r]
-    code_edits = [r for r in rels if not r.startswith("docs/")]
-    doc_edits = [
-        r for r in rels
-        if r.startswith("docs/specs/") or r.startswith("docs/decisions/")
-    ]
+    code_edits = [r for r in rels if not r.startswith(ignore)]
+    doc_edits = [r for r in rels if r.startswith(durable)]
 
     if code_edits and not doc_edits:
         print(json.dumps({"decision": "block", "reason": REASON}))

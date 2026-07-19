@@ -281,3 +281,123 @@ def test_wrapper_launcher_blocks_end_to_end(tmp_path):
     else:
         cmd = ["sh", str(WRAPPER)]
     assert_blocks(run_hook(project, transcript, executable=cmd))
+
+
+# --- ecosystem adapters -------------------------------------------------------
+
+def make_openspec_project(tmp_path, with_native=False):
+    project = tmp_path / "project"
+    (project / "openspec" / "specs").mkdir(parents=True)
+    (project / "openspec" / "changes").mkdir(parents=True)
+    if with_native:
+        (project / "docs" / "specs").mkdir(parents=True)
+    return project
+
+
+def test_openspec_project_blocks_code_without_docs(tmp_path):
+    project = make_openspec_project(tmp_path)
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+    ])
+    assert_blocks(run_hook(project, transcript))
+
+
+def test_openspec_specs_edit_satisfies(tmp_path):
+    project = make_openspec_project(tmp_path)
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+        edit_line(project / "openspec" / "specs" / "payments" / "spec.md"),
+    ])
+    assert run_hook(project, transcript) == ""
+
+
+def test_openspec_changes_edit_does_not_satisfy(tmp_path):
+    # openspec/changes/ is the working layer - like docs/plans/, editing a
+    # proposal or tasks file is not a durable docs update
+    project = make_openspec_project(tmp_path)
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+        edit_line(project / "openspec" / "changes" / "add-x" / "tasks.md"),
+    ])
+    assert_blocks(run_hook(project, transcript))
+
+
+def test_openspec_changes_only_edit_does_not_trigger(tmp_path):
+    project = make_openspec_project(tmp_path)
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "openspec" / "changes" / "add-x" / "proposal.md"),
+    ])
+    assert run_hook(project, transcript) == ""
+
+
+def test_adr_satisfies_in_openspec_project(tmp_path):
+    project = make_openspec_project(tmp_path)
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+        edit_line(project / "docs" / "decisions" / "0001-choice.md"),
+    ])
+    assert run_hook(project, transcript) == ""
+
+
+def test_hybrid_project_either_spec_tree_satisfies(tmp_path):
+    project = make_openspec_project(tmp_path, with_native=True)
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+        edit_line(project / "openspec" / "specs" / "auth" / "spec.md"),
+    ])
+    assert run_hook(project, transcript) == ""
+
+
+def test_sdd_json_forces_ecosystem(tmp_path):
+    # config can arm the hook even before the spec tree exists
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / ".sdd.json").write_text(
+        json.dumps({"ecosystems": ["openspec"]}), encoding="utf-8"
+    )
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+    ])
+    assert_blocks(run_hook(project, transcript))
+
+
+def test_empty_ecosystems_config_disables_hook(tmp_path):
+    project = make_project(tmp_path)  # has docs/specs
+    (project / ".sdd.json").write_text(
+        json.dumps({"ecosystems": []}), encoding="utf-8"
+    )
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+    ])
+    assert run_hook(project, transcript) == ""
+
+
+def test_malformed_sdd_json_falls_back_to_detection(tmp_path):
+    project = make_project(tmp_path)  # native project
+    (project / ".sdd.json").write_text("{not json", encoding="utf-8")
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+    ])
+    assert_blocks(run_hook(project, transcript))
+
+
+def test_extra_durable_from_config(tmp_path):
+    project = make_project(tmp_path)
+    (project / ".sdd.json").write_text(
+        json.dumps({"extra_durable": ["wiki/adr/"]}), encoding="utf-8"
+    )
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+        edit_line(project / "wiki" / "adr" / "0001-x.md"),
+    ])
+    assert run_hook(project, transcript) == ""
