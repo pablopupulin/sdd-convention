@@ -1,3 +1,20 @@
+---
+id: SPEC-001
+title: Plugin architecture — original brainstorm design (archived)
+status: archived
+version: 0
+updated: 2026-07-19
+supersedes: []
+superseded_by: SPEC-001@active
+canonical: false
+---
+
+> ARCHIVED 2026-07-19. This is the original brainstorming design (in Portuguese)
+> that produced the plugin. It is history, not current truth. Its durable
+> content graduated to SPEC-001 (`docs/specs/001-plugin-architecture.md`) and
+> ADR-0001..ADR-0004 (`docs/decisions/`). Do not treat anything below as current
+> behavior; consult the active spec instead. Body kept verbatim, as archived.
+
 # Design: Plugin `sdd-convention` para Claude Code (+ outros agents)
 
 **Data:** 2026-07-19

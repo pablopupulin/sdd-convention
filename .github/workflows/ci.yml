@@ -22,6 +22,8 @@ jobs:
         run: python -m pytest tests/ -v
       - name: Scaffold hygiene linter self-check
         run: python scaffold/scripts/check-docs.py scaffold/docs
+      - name: Own SDD docs hygiene
+        run: python scripts/check-docs.py docs
       - name: Validate plugin.json
         run: python -m json.tool .claude-plugin/plugin.json
       - name: Validate marketplace.json
