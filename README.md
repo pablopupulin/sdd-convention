@@ -1,64 +1,79 @@
-# Convenção de artefatos para SDD com Agents
+# sdd-convention
 
-Um padrão para impedir que specs/plans antigos (que dizem "A") briguem com os
-novos (que dizem "não é A, é B") e degradem o raciocínio dos agents.
+**Spec-driven development with a single source of truth - as an installable
+Claude Code plugin.**
 
-O gargalo **não** é volume de artefatos — é falta de fonte única de verdade e de
-marcação de obsolescência. Vetorizar tudo (Obsidian/RAG) não resolve, porque
-embedding mede similaridade, não recência nem autoridade: um retriever traz com
-prazer o chunk que diz "A" e o que diz "B" na mesma resposta. A correção é
-**governança de ciclo de vida**, não retrieval. RAG entra depois, como
-conveniência de busca numa base grande — não como o conserto.
+Old specs that say "A" fight new ones that say "actually, B" and quietly
+degrade your agent's reasoning. The bottleneck is not artifact volume - it is
+the lack of a single source of truth and of obsolescence marking. Embeddings
+will not save you: similarity search happily returns the chunk saying "A" and
+the chunk saying "B" in the same answer. The fix is **lifecycle governance**,
+not retrieval.
 
----
+This plugin makes an agent:
 
-## A ideia central: 3 camadas por mutabilidade
+1. **Know where the truth lives** - a 3-layer convention (living specs,
+   append-only decision records, disposable plans) with machine-readable
+   frontmatter.
+2. **Close the loop** - a Stop hook notices when a turn changed code without
+   updating specs/ADRs and makes the agent either update them or explicitly
+   state that nothing durable changed.
+3. **Migrate existing messes** - an interactive retrofit playbook (inventory,
+   per-domain triage with your approval, consolidation, archive).
 
-Quase todo artefato de SDD é uma destas três coisas, e cada uma tem uma política
-de mutação diferente. Misturar as três no mesmo arquivo é o que gera a confusão.
-
-| Camada       | Pergunta que responde   | Mutabilidade                    | Onde vive          |
-|--------------|-------------------------|---------------------------------|--------------------|
-| **Working**  | Como vamos fazer agora? | Efêmera — descartável ao mergear| `docs/plans/`      |
-| **Spec**     | O que deve valer hoje?  | Viva — editada no lugar         | `docs/specs/`      |
-| **Decision** | Por que mudou de A→B?   | Imutável — append-only          | `docs/decisions/`  |
-
-Regra de ouro: a **spec** nunca narra história ("antes era X"). Ela descreve só o
-presente. A história (o "antes era X, mudamos por Y") mora num **ADR**. E o
-**plano** é lixo depois do merge — o que sobrevive graduou-se para spec ou ADR.
-
----
-
-## Estrutura de pastas
+## Install (Claude Code)
 
 ```
-repo/
-├── CLAUDE.md                     # ponto de entrada do agent: aponta a verdade + regras
-└── docs/
-    ├── specs/                    # CANÔNICO e vivo — editado no lugar
-    │   ├── README.md             #   índice + status de todas as specs ativas
-    │   └── 001-example-feature.md
-    ├── decisions/                # ADRs — append-only, imutável, o "por quê A→B"
-    │   ├── README.md
-    │   ├── 0001-example-decision.md
-    │   └── 0002-supersede-example.md
-    ├── plans/                    # working (Superpowers) — efêmero
-    │   ├── active/               #   1 plano por worktree/branch em andamento
-    │   └── archive/              #   planos já mergeados (só rastreio)
-    ├── _archive/                 # specs aposentadas — invisível ao agent por padrão
-    │   └── 2026-01-example-payments-v1.md
-    └── scripts/
-        └── check-docs.py         # linter de higiene (roda no CI)
+/plugin marketplace add pablopupulin/sdd-convention
+/plugin install sdd-convention@sdd-convention
 ```
 
----
+Then, in each project that should use the convention:
 
-## As regras que fazem funcionar (o segredo não é a pasta, é o header)
+- New/clean project: run `/sdd-init`
+- Existing messy docs: run `/sdd-retrofit`
 
-Todo doc durável carrega **frontmatter legível por máquina**. É o que permite ao
-agent (e ao linter) saber o que é canônico sem ler o conteúdo inteiro.
+The Stop hook only acts in projects that have a `docs/specs/` directory -
+installing the plugin globally does not affect other projects.
 
-Spec:
+## What you get
+
+| Piece | What it does |
+|---|---|
+| Skill `sdd-source-of-truth` | The convention: 3 layers, authority order, frontmatter schemas, lifecycle rules. Loads when the agent touches durable docs. |
+| Skill `sdd-finalize` | The closing checklist: promote changes into specs/ADRs, archive plans, update indexes. Loads when finishing work - and when the hook fires. |
+| Skill `sdd-retrofit` | Interactive migration playbook for existing doc bases. |
+| `/sdd-init` | Scaffolds `docs/`, merges a managed rules block into CLAUDE.md, installs the hygiene linter. |
+| `/sdd-retrofit` | Runs the retrofit playbook. |
+| Stop hook | Fail-open reminder: code changed but no spec/ADR touched - finalize before stopping. |
+| `scripts/check-docs.py` | CI linter: duplicate active specs, archived docs without `superseded_by`, broken ADR supersede chains. |
+
+## The convention in 60 seconds
+
+Almost every SDD artifact is one of three things, each with its own mutation
+policy. Mixing them in one file is what creates confusion.
+
+| Layer        | Question it answers      | Mutability                      | Lives in          |
+|--------------|--------------------------|---------------------------------|-------------------|
+| **Working**  | How are we doing it now? | Ephemeral - disposable on merge | `docs/plans/`     |
+| **Spec**     | What must hold today?    | Living - edited in place        | `docs/specs/`     |
+| **Decision** | Why did A become B?      | Immutable - append-only         | `docs/decisions/` |
+
+Golden rule: a **spec** never narrates history ("it used to be X"). It
+describes only the present. The history ("it was X, we changed it because Y")
+lives in an **ADR**. And a **plan** is garbage after the merge - whatever
+survives graduates into a spec or an ADR.
+
+Authority order when sources conflict:
+
+1. `docs/specs/*` with `status: active` - what the system MUST do today
+2. The code - what it actually does today
+3. `docs/decisions/*` (ADRs) - WHY it changed from A to B
+4. `docs/_archive/*` - history. Ignored by default.
+
+Every durable doc carries machine-readable frontmatter (see
+`templates/spec.md` and `templates/adr.md`), which is what lets an agent - and
+the linter - know what is canonical without reading everything:
 
 ```yaml
 ---
@@ -67,106 +82,91 @@ status: active        # draft | active | superseded | archived
 version: 3
 updated: 2026-07-19
 superseded_by: null
-canonical: true       # agents só confiam em canonical:true + status:active
+canonical: true       # agents only trust canonical: true + status: active
 ---
 ```
 
-ADR:
+Four lifecycle rules make it work:
 
-```yaml
----
-id: ADR-0002
-status: accepted      # proposed | accepted | superseded | deprecated | rejected
-supersedes: ADR-0001
-superseded_by: null
----
+1. **Specs are living.** Edit in place, bump `version`/`updated`. Never
+   create `payments-v2.md` next to `payments.md`.
+2. **Contradiction requires an ADR.** New ADR with `supersedes:`, old one
+   marked `superseded`. The ADR is the only place a contradiction may exist.
+3. **Retire, never delete.** `status: archived` + `superseded_by` + move to
+   `docs/_archive/`.
+4. **Plans are disposable.** Promote the durable part on merge, archive the
+   plan.
+
+## Project layout after /sdd-init
+
+```
+your-repo/
+|- CLAUDE.md                     # agent entry point: managed rules block
+|- docs/
+|  |- specs/                     # CANONICAL and living - edited in place
+|  |  |- README.md               #   index + status of all active specs
+|  |- decisions/                 # ADRs - append-only, the "why A became B"
+|  |  |- README.md
+|  |- plans/                     # working layer - ephemeral
+|  |  |- active/
+|  |  |- archive/
+|  |- _archive/                  # retired specs - invisible to agents
+|- scripts/
+   |- check-docs.py              # hygiene linter (run it in CI)
 ```
 
-Ciclo de vida, em 4 regras:
+## Using it with other agents (Codex, Cursor, ...)
 
-1. **Specs são vivas.** Edite no lugar, suba `version`/`updated`. Nunca crie
-   `pagamentos-v2.md` ao lado de `pagamentos.md`.
-2. **Contradição exige ADR.** Toda mudança de comportamento que contraria uma
-   decisão anterior cria um novo ADR com `supersedes:` apontando pro antigo, e o
-   antigo vira `status: superseded`. O ADR é o **único** lugar onde a
-   contradição pode existir legitimamente.
-3. **Aposente, não delete.** Spec retirada → `status: archived`, `superseded_by`
-   preenchido, arquivo movido para `docs/_archive/`. ADR nunca é deletado.
-4. **Plano é descartável.** Ao mergear, promova o durável (→ spec ou ADR) e mova
-   o plano para `plans/archive/`. Agent não infere estado atual de um plano.
+The skills follow the open [Agent Skills](https://agentskills.io) format
+(`SKILL.md` with `name`/`description` frontmatter):
 
-O `CLAUDE.md` codifica a **ordem de autoridade** para o agent: spec ativa > código
-> ADR > archive (ignorado). Assim, quando spec e código divergem, há uma regra
-determinística de quem vence — em vez de o agent adivinhar.
+1. Copy the `skills/` directories into your agent's skills location.
+2. Add the rules block to your `AGENTS.md` (same content as
+   `scaffold/CLAUDE.md` between the `sdd-convention` markers), plus this
+   enforcement line - other agents do not run the Stop hook, so the closing
+   step must be instructed:
 
----
+```markdown
+## Finishing work (SDD convention)
 
-## Playbook de retrofit (para o que já está bagunçado)
+Before ending any task that changed code: update the canonical spec in
+docs/specs/ (bump version/updated) and/or write an ADR in docs/decisions/
+for any decision or contradiction - or state explicitly that nothing durable
+changed. Never narrate history inside a spec; history lives in ADRs. Then run
+`python scripts/check-docs.py docs` if present.
+```
 
-Não tente reescrever tudo. Faça uma passada de triagem:
+## Where RAG/Obsidian fits
 
-1. **Inventário sem ler tudo.** Liste caminhos + datas dos artefatos (não jogue o
-   conteúdo todo no contexto). Um agent com um `ls -R` e `git log` basta.
-2. **Triagem em 3 baldes** por artefato: *canônico* (é a verdade hoje),
-   *histórico* (uma decisão passada) ou *morto* (obsoleto sem valor).
-3. **Um canônico por domínio.** Escolha/mescle numa única spec viva em
-   `docs/specs/`. Onde houver duas versões, a verdade atual vai pra ela.
-4. **Toda contradição vira ADR.** Para cada "A→B" que você encontrar, escreva um
-   ADR curto capturando a mudança e alinhe a spec canônica ao B.
-5. **Histórico/morto → `_archive/`** com `status: archived` + `superseded_by`.
-   Não delete (o git guarda, mas o header deixa a intenção explícita).
-6. **Escreva o `CLAUDE.md`** apontando para o conjunto canônico e as regras.
-7. **Ligue o linter no CI** (`check-docs.py`) pra não regredir.
+Not as the source of truth - as a **search index over the canonical set**,
+once it grows too big to scan. Only index `status: active` +
+`canonical: true`. Never vectorize `docs/_archive/`. Retrieval can no longer
+resurrect the old "A", because the old "A" is simply not in the index.
 
-Dá pra fazer domínio por domínio — não precisa ser big bang. Comece pelo domínio
-onde os agents mais se confundem.
+## Prior art
 
----
+This packages battle-tested pieces rather than inventing new ones:
 
-## Isso já existe? Sim — não é problema novo
+- [ADR / MADR](https://adr.github.io/madr/) - decision records; the
+  `superseded` status exists precisely for "A became B".
+- [GitHub Spec Kit](https://github.com/github/spec-kit) - SDD scaffolding
+  (`constitution.md` maps to the CLAUDE.md rules block).
+- [AGENTS.md](https://agents.md) - cross-tool agent memory file.
+- [Superpowers](https://github.com/obra/superpowers) - the working layer
+  (brainstorm - plan - implement); this convention adds the durable layer on
+  top, without fighting it.
 
-Você está reinventando (com razão) coisas que já têm forma madura. O padrão acima
-é essencialmente a costura destas peças:
+None of them is a vectorizer that resolves contradictions - they all attack
+the problem through governance and state, which is the right side.
 
-- **ADR / MADR** — o formato de registro de decisão. O campo `status` com
-  `superseded` foi feito **exatamente** para o caso "A virou B". É a peça mais
-  battle-tested aqui. (https://adr.github.io/madr/)
-- **GitHub Spec Kit** — toolkit de SDD que formaliza `constitution.md` (princípios
-  do projeto) + `specs/NNN-feature/` com artefatos spec → plan → tasks. Ótima
-  referência de scaffolding; o conceito de *constitution* mapeia no teu
-  `CLAUDE.md`. (https://github.com/github/spec-kit)
-- **AGENTS.md** — padrão cross-tool de arquivo de memória do agent. No Claude Code
-  o equivalente é o `CLAUDE.md` (mesma ideia, nome diferente).
-- **Superpowers** (Jesse Vincent) — teu fluxo atual. Ele já te dá a camada
-  **working**: brainstorm → worktree → plano → implementar, com plano em markdown
-  e checkboxes. O que falta é a camada durável com marcação de verdade — é
-  justamente o que esta convenção adiciona por cima, sem brigar com ele: o plano
-  do Superpowers vive em `docs/plans/`, e no merge você promove pra `specs/`/`decisions/`.
-- **"Governing specs" / trace metadata** — a ideia de versionar specs como código
-  e registrar qual versão de spec produziu cada comportamento. Útil quando o time
-  cresce. (https://www.truefoundry.com/blog/spec-driven-development-ai-agents)
+## Development
 
-O que **nenhuma** delas é: um vetorizador que resolve contradição. Todas atacam o
-problema pelo lado da governança/estado — que é o lado certo.
+```
+python -m pytest tests/ -v                        # hook tests
+python scaffold/scripts/check-docs.py scaffold/docs  # linter self-check
+claude plugin validate .                          # manifest validation
+```
 
----
+## License
 
-## Onde o Obsidian/RAG realmente entra
-
-Não como fonte de verdade, e sim como **índice de busca por cima do conjunto
-canônico**, quando ele fica grande demais pra um agent varrer por `ls`/grep.
-Regra: só indexe o que tem `status: active`/`canonical: true`. Nunca vetorize o
-`_archive/`. Assim o retrieval nunca ressuscita o "A" antigo — porque o "A" antigo
-simplesmente não está no índice.
-
----
-
-## Arquivos deste pacote
-
-- `README.md` — este documento (a convenção).
-- `scaffold/` — estrutura pronta pra copiar num repo, com exemplos preenchidos:
-  - `CLAUDE.md`, `docs/specs/`, `docs/decisions/` (com um par ADR-0001→ADR-0002
-    demonstrando supersede), `docs/plans/`, `docs/_archive/` e
-    `scripts/check-docs.py`.
-- O linter passa no exemplo limpo e falha quando você introduz duas specs ativas
-  com o mesmo id ou um doc arquivado sem `superseded_by`.
+MIT
