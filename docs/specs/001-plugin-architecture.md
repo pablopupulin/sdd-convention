@@ -58,14 +58,15 @@ that nothing durable changed.
 ### Enforcement
 
 9. A Stop hook (`hooks/check-docs-updated.py`, launched by the polyglot
-   `hooks/run-hook.cmd`, registered in `hooks/hooks.json`) blocks the stop of a
-   turn ONLY when that turn edited project files outside the recognized documentation trees without also
-   editing the durable layer (see Ecosystem adapters). It blocks by printing
-   `{"decision": "block", "reason": ...}` on stdout with exit 0. (ADR-0002)
-10. The hook is opt-in per project (silent exit 0 when the project has no
-    `docs/specs/`) and anti-loop (silent when `stop_hook_active` is true).
-    "Current turn" = everything after the last real user prompt in the
-    transcript.
+   `hooks/run-hook.cmd`, registered in `hooks/hooks.json`) blocks the stop of
+   a turn ONLY when that turn edited project files outside the recognized
+   documentation trees without also editing the durable layer (see Ecosystem
+   adapters). It blocks by printing `{"decision": "block", "reason": ...}` on
+   stdout with exit 0. (ADR-0002)
+10. The hook is opt-in per project: silent exit 0 when no ecosystem is
+    detected and no `.sdd.json` arms it (see 12a/12c). Anti-loop: silent when
+    `stop_hook_active` is true. "Current turn" = everything after the last
+    real user prompt in the transcript.
 11. The hook fails open: any unexpected condition (no Python, malformed input,
     unreadable transcript) exits 0 with no output. Hard enforcement lives in CI
     via `check-docs.py`, not in the hook. (ADR-0002, ADR-0004)
@@ -87,6 +88,9 @@ that nothing durable changed.
     keys `ecosystems` (forces the set; empty list disables the hook),
     `extra_durable`, `extra_ignore`. A malformed file falls back to
     detection. (ADR-0005)
+    An empty `ecosystems` list disables detection-based arming (though
+    `extra_durable` entries still arm); unknown ecosystem names are filtered
+    out, so a config naming only unknown ecosystems also disables the hook.
 12d. `/sdd-init` is ecosystem-aware: in OpenSpec projects it runs hybrid mode
     (only `docs/decisions/` + linter + `scaffold/CLAUDE-openspec.md` rules
     block; never a second canonical spec tree). `sdd-retrofit` consolidates

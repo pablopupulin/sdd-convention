@@ -119,7 +119,9 @@ def project_relative(path, cwd):
 
 def _as_prefix(p):
     """Normalize a user-supplied path prefix to forward-slash + trailing /."""
-    p = p.replace("\\", "/").lstrip("./")
+    p = p.replace("\\", "/")
+    if p.startswith("./"):
+        p = p[2:]
     return p if p.endswith("/") else p + "/"
 
 
@@ -145,14 +147,16 @@ def load_active_rules(cwd):
             raw = config.get("ecosystems")
             if isinstance(raw, list):
                 forced = [n for n in raw if n in ECOSYSTEMS]
-            extra_durable = [
-                p for p in config.get("extra_durable") or []
-                if isinstance(p, str) and p.strip()
-            ]
-            extra_ignore = [
-                p for p in config.get("extra_ignore") or []
-                if isinstance(p, str) and p.strip()
-            ]
+            raw_durable = config.get("extra_durable")
+            if isinstance(raw_durable, list):
+                extra_durable = [
+                    p for p in raw_durable if isinstance(p, str) and p.strip()
+                ]
+            raw_ignore = config.get("extra_ignore")
+            if isinstance(raw_ignore, list):
+                extra_ignore = [
+                    p for p in raw_ignore if isinstance(p, str) and p.strip()
+                ]
     if forced is not None:
         names = forced
     else:

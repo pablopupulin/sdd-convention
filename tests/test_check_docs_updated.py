@@ -401,3 +401,51 @@ def test_extra_durable_from_config(tmp_path):
         edit_line(project / "wiki" / "adr" / "0001-x.md"),
     ])
     assert run_hook(project, transcript) == ""
+
+
+def test_extra_ignore_from_config(tmp_path):
+    # a config-ignored tree neither triggers nor satisfies
+    project = make_project(tmp_path)
+    (project / ".sdd.json").write_text(
+        json.dumps({"extra_ignore": ["sandbox/"]}), encoding="utf-8"
+    )
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "sandbox" / "scratch.py"),
+    ])
+    assert run_hook(project, transcript) == ""
+
+
+def test_extra_durable_only_arms_hook(tmp_path):
+    # extra_durable can arm a project with no detected ecosystem tree
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / ".sdd.json").write_text(
+        json.dumps({"extra_durable": ["wiki/adr/"]}), encoding="utf-8"
+    )
+    blocked = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+    ])
+    assert_blocks(run_hook(project, blocked))
+    satisfied = tmp_path / "satisfied.jsonl"
+    satisfied.write_text("\n".join(json.dumps(e) for e in [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+        edit_line(project / "wiki" / "adr" / "0001-x.md"),
+    ]), encoding="utf-8")
+    assert run_hook(project, satisfied) == ""
+
+
+def test_bare_string_extra_durable_ignored(tmp_path):
+    # shape-malformed extra_* values fall back to detection (here: nothing)
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / ".sdd.json").write_text(
+        json.dumps({"extra_durable": "wiki/"}), encoding="utf-8"
+    )
+    transcript = write_transcript(tmp_path, [
+        user_line(),
+        edit_line(project / "src" / "main.py"),
+    ])
+    assert run_hook(project, transcript) == ""
