@@ -1,0 +1,20 @@
+{
+  "name": "sdd-convention",
+  "description": "Spec-driven development with a single source of truth: living specs, append-only ADRs, disposable plans - plus a Stop hook that reminds agents to update docs before finishing",
+  "version": "0.1.0",
+  "author": {
+    "name": "Pablo Pupulin",
+    "email": "pablopupulin@gmail.com"
+  },
+  "homepage": "https://github.com/pablopupulin/sdd-convention",
+  "repository": "https://github.com/pablopupulin/sdd-convention",
+  "license": "MIT",
+  "keywords": [
+    "sdd",
+    "spec-driven-development",
+    "documentation",
+    "adr",
+    "source-of-truth",
+    "skills"
+  ]
+}
