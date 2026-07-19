@@ -9,7 +9,7 @@
     {
       "name": "sdd-convention",
       "description": "Spec-driven development with a single source of truth: living specs, append-only ADRs, disposable plans - plus a Stop hook that reminds agents to update docs before finishing",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": ".",
       "author": {
         "name": "Pablo Pupulin",

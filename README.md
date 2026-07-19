@@ -33,8 +33,9 @@ Then, in each project that should use the convention:
 - New/clean project: run `/sdd-init`
 - Existing messy docs: run `/sdd-retrofit`
 
-The Stop hook only acts in projects that have a `docs/specs/` directory -
-installing the plugin globally does not affect other projects.
+The Stop hook only acts in projects with a recognized spec tree
+(`docs/specs/`, or `openspec/specs/` in OpenSpec projects) - installing the
+plugin globally does not affect other projects.
 
 ## What you get
 
@@ -115,6 +116,39 @@ your-repo/
    |- check-docs.py              # hygiene linter (run it in CI)
 ```
 
+## Ecosystem adapters
+
+The three layers are the invariant; where the Spec layer lives is adapter
+data. v0.2.0 ships two adapters, detected automatically (union - hybrid
+projects get both):
+
+| Adapter | Detected by | Durable (satisfies the hook) | Working (ignored) |
+|---|---|---|---|
+| `native` | `docs/specs/` | `docs/specs/`, `docs/decisions/` | `docs/plans/` |
+| `openspec` | `openspec/specs/` | `openspec/specs/`, `docs/decisions/` | `openspec/changes/` |
+
+The Decision layer (ADRs) is always `docs/decisions/` - it is this plugin's
+tool-neutral contribution; [OpenSpec](https://github.com/Fission-AI/OpenSpec)
+has no equivalent. In an OpenSpec project, `/sdd-init` runs in hybrid mode:
+it creates only `docs/decisions/` + the linter + an OpenSpec-flavored rules
+block (never a second canonical spec tree), and spec changes keep flowing
+through OpenSpec's propose -> apply -> archive.
+
+An optional `.sdd.json` at the project root overrides detection:
+
+````json
+{
+  "ecosystems": ["openspec"],
+  "extra_durable": ["wiki/adr/"],
+  "extra_ignore": ["sandbox/"]
+}
+````
+
+`ecosystems` forces the adapter set (an empty list disables the hook for the
+project); `extra_*` append path prefixes; a malformed file falls back to
+detection. Adding a future adapter (Spec Kit, ...) is one entry in the hook's
+`ECOSYSTEMS` table.
+
 ## Using it with other agents (Codex, Cursor, ...)
 
 The skills follow the open [Agent Skills](https://agentskills.io) format
@@ -151,6 +185,9 @@ This packages battle-tested pieces rather than inventing new ones:
   `superseded` status exists precisely for "A became B".
 - [GitHub Spec Kit](https://github.com/github/spec-kit) - SDD scaffolding
   (`constitution.md` maps to the CLAUDE.md rules block).
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) - lightweight SDD change
+  flow (propose -> apply -> archive); the `openspec` adapter maps its `specs/`
+  tree as the Spec layer and adds the Decision layer it lacks.
 - [AGENTS.md](https://agents.md) - cross-tool agent memory file.
 - [Superpowers](https://github.com/obra/superpowers) - the working layer
   (brainstorm - plan - implement); this convention adds the durable layer on
