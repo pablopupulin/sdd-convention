@@ -1,6 +1,6 @@
 ---
 name: sdd-source-of-truth
-description: Use when reading or editing anything under docs/specs/, docs/decisions/, or docs/_archive/, or when determining what the system's current behavior should be, in a project using the SDD convention (has docs/specs/). Defines the 3-layer model, authority order, frontmatter schemas, and the four lifecycle rules.
+description: Use when reading or editing anything under docs/specs/, docs/decisions/, docs/_archive/, or openspec/specs/, or when determining what the system's current behavior should be, in a project using the SDD convention (has docs/specs/ or openspec/specs/). Defines the 3-layer model, authority order, ecosystem mapping, frontmatter schemas, and the four lifecycle rules.
 ---
 
 # SDD Source of Truth
@@ -14,6 +14,26 @@ confusion, so never do it.
 | **Working**  | How are we doing it now? | Ephemeral - disposable on merge | `docs/plans/`     |
 | **Spec**     | What must hold today?    | Living - edited in place        | `docs/specs/`     |
 | **Decision** | Why did A become B?      | Immutable - append-only         | `docs/decisions/` |
+
+## Ecosystems
+
+The three layers are the invariant; where the Spec layer lives is ecosystem
+data. The Decision layer is ALWAYS `docs/decisions/`, in every ecosystem.
+
+| Ecosystem | Spec layer | Working layer | Decision layer |
+|---|---|---|---|
+| native | `docs/specs/` | `docs/plans/` | `docs/decisions/` |
+| OpenSpec | `openspec/specs/` | `openspec/changes/` | `docs/decisions/` |
+
+- The authority order below is identical in every ecosystem - substitute the
+  Spec-layer path (in OpenSpec: item 1 is `openspec/specs/*`, item 4 is
+  `openspec/changes/archive/*`).
+- OpenSpec specs use OpenSpec's own format (Requirements/Scenarios, validated
+  by `openspec validate`) - the frontmatter schemas and lifecycle rules below
+  govern the native tree. In OpenSpec, behavior retirement is `REMOVED
+  Requirements` via a change, not `docs/_archive/`.
+- An optional `.sdd.json` at the project root overrides detection:
+  `{"ecosystems": ["openspec"], "extra_durable": [...], "extra_ignore": [...]}`.
 
 ## Authority order
 

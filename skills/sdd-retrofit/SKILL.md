@@ -10,6 +10,15 @@ convention. Read the sdd-source-of-truth skill first. Never bulk-rewrite
 without approval: triage is judgment, and a wrong call becomes a wrong source
 of truth.
 
+## Phase 0 - Detect the ecosystem
+
+If the project has `openspec/specs/`, the canonical Spec layer is OpenSpec's:
+consolidate INTO `openspec/specs/` capabilities and never create a parallel
+`docs/specs/`. `openspec/changes/archive/` entries are ADR candidates -
+distill each archived change that carried a real decision into a short ADR in
+`docs/decisions/`. Everything else in this playbook applies unchanged, with
+`openspec/specs/` substituted for `docs/specs/`.
+
 ## Phase 1 - Inventory (no deep reading)
 
 1. List doc artifacts with paths and dates only: directory listing of doc
@@ -59,8 +68,10 @@ Repeat Phase 3 for the next approved domain.
 
 ## Phase 4 - Setup
 
-Finish exactly like /sdd-init: copy any missing scaffold pieces (index
-READMEs, `docs/plans/active|archive/`, `docs/_archive/`,
-`scripts/check-docs.py`), merge the CLAUDE.md rules block, ask about the
-project docs language, and offer wiring `check-docs.py` into CI. Then run
+Finish exactly like /sdd-init, which is ecosystem-aware: native projects get
+the full scaffold (index READMEs, `docs/plans/active|archive/`,
+`docs/_archive/`, `scripts/check-docs.py`); OpenSpec projects get hybrid mode
+(only `docs/decisions/` + linter + the OpenSpec rules block). Merge the
+CLAUDE.md rules block, ask about the project docs language, and offer wiring
+`check-docs.py` into CI. Then run
 `python scripts/check-docs.py docs` and show the result.
