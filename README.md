@@ -136,13 +136,13 @@ through OpenSpec's propose -> apply -> archive.
 
 An optional `.sdd.json` at the project root overrides detection:
 
-````json
+```json
 {
   "ecosystems": ["openspec"],
   "extra_durable": ["wiki/adr/"],
   "extra_ignore": ["sandbox/"]
 }
-````
+```
 
 `ecosystems` forces the adapter set (an empty list disables the hook for the
 project); `extra_*` append path prefixes; a malformed file falls back to
