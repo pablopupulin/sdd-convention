@@ -244,6 +244,31 @@ def test_missing_transcript_fails_open(tmp_path):
     assert run_hook(project, missing) == ""
 
 
+def test_truncated_utf8_transcript_fails_open(tmp_path):
+    # a transcript cut mid multi-byte sequence (flush race) must not crash the
+    # hook; lines that parsed still count, so the block still fires here
+    project = make_project(tmp_path)
+    transcript = tmp_path / "transcript.jsonl"
+    valid = (
+        json.dumps(user_line()) + "\n"
+        + json.dumps(edit_line(project / "src" / "main.py")) + "\n"
+    ).encode("utf-8")
+    transcript.write_bytes(valid + b'{"type": "user", "message": "caf\xc3')
+    assert_blocks(run_hook(project, transcript))
+
+
+def test_wrong_typed_stdin_fields_fail_open(tmp_path):
+    result = subprocess.run(
+        [sys.executable, str(HOOK)],
+        input=json.dumps({"cwd": 5, "transcript_path": 7, "stop_hook_active": False}),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == ""
+
+
 def test_wrapper_launcher_blocks_end_to_end(tmp_path):
     """Run the polyglot run-hook.cmd the way Claude Code would on this OS."""
     project = make_project(tmp_path)

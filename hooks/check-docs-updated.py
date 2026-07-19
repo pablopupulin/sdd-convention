@@ -46,7 +46,7 @@ def is_real_user_prompt(entry):
 
 def edited_paths_in_last_turn(transcript_path):
     entries = []
-    with open(transcript_path, encoding="utf-8") as fh:
+    with open(transcript_path, encoding="utf-8", errors="replace") as fh:
         for line in fh:
             line = line.strip()
             if not line:
@@ -98,7 +98,7 @@ def project_relative(path, cwd):
     return rel
 
 
-def main():
+def _run():
     try:
         data = json.load(sys.stdin)
     except (json.JSONDecodeError, ValueError):
@@ -129,6 +129,13 @@ def main():
     if code_edits and not doc_edits:
         print(json.dumps({"decision": "block", "reason": REASON}))
     return 0
+
+
+def main():
+    try:
+        return _run()
+    except Exception:
+        return 0  # fail open: this hook is a reminder, never an error source
 
 
 if __name__ == "__main__":
