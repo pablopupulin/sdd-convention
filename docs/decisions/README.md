@@ -20,6 +20,7 @@ Format: lean [MADR](https://adr.github.io/madr/). Rules:
 | ADR-0002 | Enforce doc updates via a fail-open Stop hook     | accepted | -          | 2026-07-19 |
 | ADR-0003 | Windows-compatible polyglot .cmd hook launcher   | accepted | -          | 2026-07-19 |
 | ADR-0004 | Python standard library only for hook and linter | accepted | -          | 2026-07-19 |
+| ADR-0005 | Ecosystems are adapter data; Decision layer fixed | accepted | -          | 2026-07-19 |
 
 ## Required frontmatter
 

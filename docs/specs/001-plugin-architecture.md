@@ -2,7 +2,7 @@
 id: SPEC-001
 title: sdd-convention plugin architecture
 status: active
-version: 1
+version: 2
 updated: 2026-07-19
 owner: pablopupulin
 supersedes: []
@@ -59,8 +59,8 @@ that nothing durable changed.
 
 9. A Stop hook (`hooks/check-docs-updated.py`, launched by the polyglot
    `hooks/run-hook.cmd`, registered in `hooks/hooks.json`) blocks the stop of a
-   turn ONLY when that turn edited project files outside `docs/` without also
-   editing `docs/specs/` or `docs/decisions/`. It blocks by printing
+   turn ONLY when that turn edited project files outside the recognized documentation trees without also
+   editing the durable layer (see Ecosystem adapters). It blocks by printing
    `{"decision": "block", "reason": ...}` on stdout with exit 0. (ADR-0002)
 10. The hook is opt-in per project (silent exit 0 when the project has no
     `docs/specs/`) and anti-loop (silent when `stop_hook_active` is true).
@@ -72,6 +72,25 @@ that nothing durable changed.
 12. The hook launcher is a single polyglot `.cmd` file (cmd.exe batch + POSIX
     sh) so it runs on Windows and POSIX; hook commands never reference `.sh`
     files. (ADR-0003)
+
+### Ecosystem adapters
+
+12a. Which trees count as documentation is ecosystem data in the hook's
+    `ECOSYSTEMS` table. Shipped adapters: `native` (detect `docs/specs`;
+    durable `docs/specs/` + `docs/decisions/`; ignore `docs/`) and `openspec`
+    (detect `openspec/specs`; durable `openspec/specs/` + `docs/decisions/`;
+    ignore `openspec/` + `docs/`). Detection unions every detected adapter.
+    (ADR-0005)
+12b. The Decision layer is ALWAYS `docs/decisions/`, in every ecosystem.
+    (ADR-0005)
+12c. An optional `.sdd.json` at the project root overrides detection with
+    keys `ecosystems` (forces the set; empty list disables the hook),
+    `extra_durable`, `extra_ignore`. A malformed file falls back to
+    detection. (ADR-0005)
+12d. `/sdd-init` is ecosystem-aware: in OpenSpec projects it runs hybrid mode
+    (only `docs/decisions/` + linter + `scaffold/CLAUDE-openspec.md` rules
+    block; never a second canonical spec tree). `sdd-retrofit` consolidates
+    into `openspec/specs/` in OpenSpec projects.
 
 ### Assets and tooling
 
@@ -109,9 +128,11 @@ that nothing durable changed.
 - ADR-0002 - Enforce doc updates via a fail-open Stop hook (accepted)
 - ADR-0003 - Windows-compatible polyglot .cmd hook launcher (accepted)
 - ADR-0004 - Python standard library only for hook and linter (accepted)
+- ADR-0005 - Ecosystems are descriptive adapter data; the Decision layer is fixed (accepted)
 
 ## Changelog
 
 | Version | Date       | Change                                             |
 |---------|------------|----------------------------------------------------|
+| 2       | 2026-07-19 | Ecosystem adapters: native + openspec, .sdd.json override (ADR-0005). |
 | 1       | 2026-07-19 | Initial spec, retrofit from the brainstorm design. |

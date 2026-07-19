@@ -9,7 +9,7 @@ history in git and in the ADRs.
 
 | ID       | Domain              | Status | Version | Updated    |
 |----------|---------------------|--------|---------|------------|
-| SPEC-001 | Plugin architecture | active | 1       | 2026-07-19 |
+| SPEC-001 | Plugin architecture | active | 2       | 2026-07-19 |
 
 > Keep this table as the index readable by humans and agents. An `archived`
 > spec leaves this table and moves to `docs/_archive/`.
